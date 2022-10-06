@@ -1,0 +1,62 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        <h1>Todo List</h1>
+        <form>
+            Add an item:
+            <input id="addtxt">
+            <button type="button" id="add">Add</button>
+            <div>
+                <ul id="items">
+
+                </ul>
+            </div>
+        </form>
+        <template id="itemTemplate">
+            <li>
+                <span class="name"></span>
+                <button class="delete" type="button">x</button>
+            </li>
+        </template>
+        <script>
+            function uuidv4() {
+                return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                );
+            }
+            let items = [];
+            try {
+                items = Array.from(JSON.parse(localStorage.getItem("items")));
+                console.log("loaded ", items);
+            } catch (e) {
+                items = [];
+                console.error("failed loading items", e);
+            }
+            const addBtn = document.querySelector("#add");
+            const itemInput = document.querySelector("#addtxt");
+            addBtn.addEventListener("click", e => {
+                items.push({id:uuidv4(), text:itemInput.value});
+                localStorage.setItem("items", JSON.stringify(items,null,2));
+                rebuild();
+            });
+
+            const container = document.querySelector("#items");
+            function rebuild() {
+                container.innerHTML = ""; // clear existing content
+                for (const item of items) {
+                    const el = document.querySelector("#itemTemplate").content.cloneNode(true).querySelector("li");
+                    el.querySelector(".name").innerText = item.text;
+                    container.appendChild(el);
+                    el.querySelector(".delete").addEventListener("click", e => {
+                        items = items.filter(x => x.id !== item.id);
+                        localStorage.setItem("items", JSON.stringify(items,null,2));
+                        rebuild();
+                    });
+                }
+            }
+            rebuild();
+        </script>
+    </body>
+</html>
